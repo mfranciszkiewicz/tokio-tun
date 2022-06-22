@@ -9,6 +9,7 @@ nix::ioctl_write_int!(tunsetpersist, b'T', 203);
 nix::ioctl_write_int!(tunsetowner, b'T', 204);
 nix::ioctl_write_int!(tunsetgroup, b'T', 206);
 
+nix::ioctl_write_ptr_bad!(siocsifhwaddr, libc::SIOCGIFHWADDR, ifreq);
 nix::ioctl_write_ptr_bad!(siocsifmtu, libc::SIOCSIFMTU, ifreq);
 nix::ioctl_write_ptr_bad!(siocsifflags, libc::SIOCSIFFLAGS, ifreq);
 nix::ioctl_write_ptr_bad!(siocsifaddr, libc::SIOCSIFADDR, ifreq);
@@ -84,6 +85,14 @@ impl Interface {
 
     pub fn name(&self) -> &str {
         self.name.as_str()
+    }
+
+    pub fn hw_address(&self) -> Result<[u8; 6]> {
+        let mut req = ifreq::new(self.name());
+        unsafe { siocsifhwaddr(self.socket, &mut req) }?;
+        let mut data = [0i8; 6];
+        unsafe { data.copy_from_slice(&req.ifr_ifru.ifru_hwaddr.sa_data[..6]) };
+        Ok(unsafe { std::mem::transmute(data) })
     }
 
     pub fn mtu(&self, mtu: Option<i32>) -> Result<i32> {

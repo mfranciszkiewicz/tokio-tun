@@ -171,6 +171,11 @@ impl Tun {
         self.iface.name()
     }
 
+    /// Returns the MAC address of Tun/Tap device.
+    pub fn hw_addr(&self) -> Result<[u8; 6]> {
+        self.iface.hw_address()
+    }
+
     /// Returns the value of MTU.
     pub fn mtu(&self) -> Result<i32> {
         self.iface.mtu(None)
